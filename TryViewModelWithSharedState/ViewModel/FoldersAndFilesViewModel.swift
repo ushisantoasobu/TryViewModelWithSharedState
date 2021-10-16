@@ -29,9 +29,11 @@ class FoldersAndFilesViewModel {
 
     init(
         folderId: Folder.Id?,
+        initialSelectedFileIds: Set<File.Id>,
         repository: FoldersAndFilesRepository = FoldersAndFilesRepositoryImpl()
     ) {
         self.folderId = folderId
+        self.selectedFileIds.accept(initialSelectedFileIds)
         self.repository = repository
 
         Observable
@@ -70,6 +72,11 @@ class FoldersAndFilesViewModel {
             current.insert(fileId)
         }
         selectedFileIds.accept(current)
+        refresh.accept(())
+    }
+
+    func fileSelectionUpdatedFromOutside(fileIds: Set<File.Id>) {
+        selectedFileIds.accept(fileIds)
         refresh.accept(())
     }
 
