@@ -11,10 +11,16 @@ import RxSwift
 
 class FoldersAndFilesViewController: UIViewController {
 
-    static func instantiate(foldreId: Folder.Id?) -> FoldersAndFilesViewController {
+    static func instantiate(
+        foldreId: Folder.Id?,
+        initialSelectedFileIds: Set<File.Id>,
+        fileSelectedRelayFromPrevious: PublishRelay<File.Id>?
+    ) -> FoldersAndFilesViewController {
         let sb = UIStoryboard(name: "FoldersAndFilesViewController", bundle: nil)
         let vc = sb.instantiateInitialViewController() as! FoldersAndFilesViewController
         vc.folderId = foldreId
+        vc.initialSelectedFileIds = initialSelectedFileIds
+        vc.fileSelectedRelayFromPrevious = fileSelectedRelayFromPrevious
         return vc
     }
 
@@ -22,6 +28,13 @@ class FoldersAndFilesViewController: UIViewController {
     @IBOutlet weak var confirmButton: UIButton!
 
     var folderId: Folder.Id?
+    var initialSelectedFileIds: Set<File.Id>!
+
+    // 前の画面からやってくるrelay
+    var fileSelectedRelayFromPrevious: PublishRelay<File.Id>?
+    // 次の画面に渡すためのrelay
+    var fileSelectedRelayToNext: PublishRelay<File.Id> = .init()
+
     var viewModel: FoldersAndFilesViewModel!
 
     let dataSource = FoldersAndFilesViewControllerDataSource()
@@ -31,7 +44,10 @@ class FoldersAndFilesViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        viewModel = FoldersAndFilesViewModel(folderId: folderId)
+        viewModel = FoldersAndFilesViewModel(
+            folderId: folderId,
+            initialSelectedFileIds: initialSelectedFileIds
+        )
         setupTableView()
         setupBinding()
 
@@ -54,11 +70,23 @@ class FoldersAndFilesViewController: UIViewController {
             .bind(to: tableView.rx.items(dataSource: dataSource))
             .disposed(by: bag)
 
+        if let relay = self.fileSelectedRelayFromPrevious {
+            viewModel
+                .fileSelectedRelay
+                .bind(to: relay)
+                .disposed(by: bag)
+        }
+
         viewModel
             .navigateToNext
             .subscribe(onNext: { [weak self] folderId in
-                let vc = FoldersAndFilesViewController.instantiate(foldreId: folderId)
-                self?.navigationController?.pushViewController(vc, animated: true)
+                guard let self = self else { return }
+                let vc = FoldersAndFilesViewController.instantiate(
+                    foldreId: folderId,
+                    initialSelectedFileIds: self.viewModel.selectedFileIds.value,
+                    fileSelectedRelayFromPrevious: self.fileSelectedRelayToNext
+                )
+                self.navigationController?.pushViewController(vc, animated: true)
             })
             .disposed(by: bag)
 
@@ -97,6 +125,12 @@ class FoldersAndFilesViewController: UIViewController {
                     let fileId = self.viewModel.foldersAndFiles.value.files[indexPath.row].id
                     self.viewModel.fileSelected(fileId: fileId)
                 }
+            })
+            .disposed(by: bag)
+
+        fileSelectedRelayToNext
+            .subscribe(onNext: { [weak self] fileId in
+                self?.viewModel.fileSelected(fileId: fileId)
             })
             .disposed(by: bag)
     }
