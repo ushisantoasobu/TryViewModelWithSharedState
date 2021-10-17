@@ -11,10 +11,14 @@ import RxSwift
 
 class FoldersAndFilesViewController: UIViewController {
 
-    static func instantiate(foldreId: Folder.Id?) -> FoldersAndFilesViewController {
+    static func instantiate(
+        foldreId: Folder.Id?,
+        initialSelectedFileIds: Set<File.Id>
+    ) -> FoldersAndFilesViewController {
         let sb = UIStoryboard(name: "FoldersAndFilesViewController", bundle: nil)
         let vc = sb.instantiateInitialViewController() as! FoldersAndFilesViewController
         vc.folderId = foldreId
+        vc.initialSelectedFileIds = initialSelectedFileIds
         return vc
     }
 
@@ -22,16 +26,19 @@ class FoldersAndFilesViewController: UIViewController {
     @IBOutlet weak var confirmButton: UIButton!
 
     var folderId: Folder.Id?
+    var initialSelectedFileIds: Set<File.Id>!
     var viewModel: FoldersAndFilesViewModel!
 
     let dataSource = FoldersAndFilesViewControllerDataSource()
+
+    var selectedFileIdsUpdatedHandler: ((Set<File.Id>) -> Void)?
 
     let bag = DisposeBag()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        viewModel = FoldersAndFilesViewModel(folderId: folderId)
+        viewModel = FoldersAndFilesViewModel(folderId: folderId, initialSelectedFileIds: initialSelectedFileIds)
         setupTableView()
         setupBinding()
 
@@ -55,10 +62,24 @@ class FoldersAndFilesViewController: UIViewController {
             .disposed(by: bag)
 
         viewModel
+            .selectedFileIds
+            .subscribe(onNext: { [weak self] fileIds in
+                self?.selectedFileIdsUpdatedHandler?(fileIds)
+            })
+            .disposed(by: bag)
+
+        viewModel
             .navigateToNext
             .subscribe(onNext: { [weak self] folderId in
-                let vc = FoldersAndFilesViewController.instantiate(foldreId: folderId)
-                self?.navigationController?.pushViewController(vc, animated: true)
+                guard let self = self else { return }
+                let vc = FoldersAndFilesViewController.instantiate(
+                    foldreId: folderId,
+                    initialSelectedFileIds: self.viewModel.selectedFileIds.value
+                )
+                vc.selectedFileIdsUpdatedHandler = { [weak self] fileIds in
+                    self?.viewModel.fileSelectionUpdatedFromOutside(fileIds: fileIds)
+                }
+                self.navigationController?.pushViewController(vc, animated: true)
             })
             .disposed(by: bag)
 

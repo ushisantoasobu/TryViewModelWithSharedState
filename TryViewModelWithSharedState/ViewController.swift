@@ -17,7 +17,7 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        let vc = FoldersAndFilesViewController.instantiate(foldreId: nil)
+        let vc = FoldersAndFilesViewController.instantiate(foldreId: nil, initialSelectedFileIds: [])
         let nav = UINavigationController(rootViewController: vc)
         present(nav, animated: true, completion: nil)
     }
