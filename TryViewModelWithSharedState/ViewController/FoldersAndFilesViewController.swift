@@ -11,10 +11,14 @@ import RxSwift
 
 class FoldersAndFilesViewController: UIViewController {
 
-    static func instantiate(foldreId: Folder.Id?) -> FoldersAndFilesViewController {
+    static func instantiate(
+        foldreId: Folder.Id?,
+        initialSelectedFileIds: Set<File.Id>
+    ) -> FoldersAndFilesViewController {
         let sb = UIStoryboard(name: "FoldersAndFilesViewController", bundle: nil)
         let vc = sb.instantiateInitialViewController() as! FoldersAndFilesViewController
         vc.folderId = foldreId
+        vc.initialSelectedFileIds = initialSelectedFileIds
         return vc
     }
 
@@ -22,6 +26,7 @@ class FoldersAndFilesViewController: UIViewController {
     @IBOutlet weak var confirmButton: UIButton!
 
     var folderId: Folder.Id?
+    var initialSelectedFileIds: Set<File.Id>!
     var viewModel: FoldersAndFilesViewModel!
 
     let dataSource = FoldersAndFilesViewControllerDataSource()
@@ -31,9 +36,13 @@ class FoldersAndFilesViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        viewModel = FoldersAndFilesViewModel(folderId: folderId)
+        viewModel = FoldersAndFilesViewModel(
+            folderId: folderId,
+            initialSelectedFileIds: initialSelectedFileIds
+        )
         setupTableView()
         setupBinding()
+        setupNotification()
 
         viewModel.viewDidLoad()
     }
@@ -57,8 +66,12 @@ class FoldersAndFilesViewController: UIViewController {
         viewModel
             .navigateToNext
             .subscribe(onNext: { [weak self] folderId in
-                let vc = FoldersAndFilesViewController.instantiate(foldreId: folderId)
-                self?.navigationController?.pushViewController(vc, animated: true)
+                guard let self = self else { return }
+                let vc = FoldersAndFilesViewController.instantiate(
+                    foldreId: folderId,
+                    initialSelectedFileIds: self.viewModel.selectedFileIds.value
+                )
+                self.navigationController?.pushViewController(vc, animated: true)
             })
             .disposed(by: bag)
 
@@ -82,6 +95,16 @@ class FoldersAndFilesViewController: UIViewController {
             })
             .disposed(by: bag)
 
+        viewModel
+            .fileSelectedRelay
+            .subscribe(onNext: { fileId in
+                NotificationCenter.default.post(
+                    name: .init("hoge"),
+                    object: fileId
+                )
+            })
+            .disposed(by: bag)
+
         tableView
             .rx
             .itemSelected
@@ -99,6 +122,21 @@ class FoldersAndFilesViewController: UIViewController {
                 }
             })
             .disposed(by: bag)
+    }
+
+    private func setupNotification() {
+        NotificationCenter
+            .default
+            .addObserver(self,
+                         selector: #selector(notificationReceived),
+                         name: .init("hoge"),
+                         object: nil)
+    }
+
+    @objc func notificationReceived(notification: Notification) {
+        if let fileId = notification.object as? File.Id {
+            self.viewModel.updateSelectedFile(fileId: fileId)
+        }
     }
 
     @IBAction func confirmButtonTapped(_ sender: Any) {
