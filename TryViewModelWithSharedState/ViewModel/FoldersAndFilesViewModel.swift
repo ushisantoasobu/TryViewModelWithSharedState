@@ -21,6 +21,7 @@ class FoldersAndFilesViewModel {
     var navigateToNext: PublishRelay<Folder.Id> = .init()
     var showSelectedIds: PublishRelay<Set<File.Id>> = .init()
     var refresh: PublishRelay<Void> = .init()
+    let fileSelectedRelay: PublishRelay<File.Id> = .init()
 
     let bag = DisposeBag()
 
@@ -29,9 +30,11 @@ class FoldersAndFilesViewModel {
 
     init(
         folderId: Folder.Id?,
+        initialSelectedFileIds: Set<File.Id>,
         repository: FoldersAndFilesRepository = FoldersAndFilesRepositoryImpl()
     ) {
         self.folderId = folderId
+        self.selectedFileIds.accept(initialSelectedFileIds)
         self.repository = repository
 
         Observable
@@ -63,6 +66,10 @@ class FoldersAndFilesViewModel {
     }
 
     func fileSelected(fileId: File.Id) {
+        fileSelectedRelay.accept(fileId)
+    }
+
+    func updateSelectedFile(fileId: File.Id) {
         var current = selectedFileIds.value
         if current.contains(fileId) {
             current.remove(fileId)
