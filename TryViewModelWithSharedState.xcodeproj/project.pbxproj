@@ -26,6 +26,7 @@
 		D6E1DDF82718FA8D00F39D81 /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = D6E1DDF72718FA8D00F39D81 /* RxRelay */; };
 		D6E1DDFA2718FA8D00F39D81 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = D6E1DDF92718FA8D00F39D81 /* RxCocoa */; };
 		D6E1DDFC2718FA8D00F39D81 /* RxBlocking in Frameworks */ = {isa = PBXBuildFile; productRef = D6E1DDFB2718FA8D00F39D81 /* RxBlocking */; };
+		D6E1DDFE271A893400F39D81 /* SharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E1DDFD271A893400F39D81 /* SharedState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,7 @@
 		D6E1DDE32718F52700F39D81 /* FoldersAndFilesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoldersAndFilesViewController.swift; sourceTree = "<group>"; };
 		D6E1DDE52718F53000F39D81 /* FoldersAndFilesViewController.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = FoldersAndFilesViewController.storyboard; sourceTree = "<group>"; };
 		D6E1DDE72718F5A000F39D81 /* FoldersAndFilesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoldersAndFilesViewModel.swift; sourceTree = "<group>"; };
+		D6E1DDFD271A893400F39D81 /* SharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +135,7 @@
 				D6E1DDE02718F4B300F39D81 /* ViewController */,
 				D6E1DDA92718F2CF00F39D81 /* ViewController.swift */,
 				D6E1DDE12718F4BA00F39D81 /* ViewModel */,
+				D6E1DDFD271A893400F39D81 /* SharedState.swift */,
 			);
 			path = TryViewModelWithSharedState;
 			sourceTree = "<group>";
@@ -345,6 +348,7 @@
 				D6E1DDDF2718F3A700F39D81 /* FoldersAndFilesRepository.swift in Sources */,
 				D6E1DDA82718F2CF00F39D81 /* SceneDelegate.swift in Sources */,
 				D6E1DDE82718F5A000F39D81 /* FoldersAndFilesViewModel.swift in Sources */,
+				D6E1DDFE271A893400F39D81 /* SharedState.swift in Sources */,
 				D6E1DDD82718F2F300F39D81 /* Folder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

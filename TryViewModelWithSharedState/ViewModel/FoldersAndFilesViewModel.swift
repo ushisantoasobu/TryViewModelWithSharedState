@@ -14,7 +14,6 @@ class FoldersAndFilesViewModel {
     var folderId: Folder.Id?
 
     var foldersAndFiles: BehaviorRelay<FoldersAndFiles> = .init(value: .empty())
-    var selectedFileIds: BehaviorRelay<Set<File.Id>> = .init(value: [])
 
     // Output
     var hoge: PublishRelay<(FoldersAndFiles, Set<File.Id>)> = .init()
@@ -35,7 +34,7 @@ class FoldersAndFilesViewModel {
         self.repository = repository
 
         Observable
-            .combineLatest(foldersAndFiles, selectedFileIds)
+            .combineLatest(foldersAndFiles, SharedState.shared.selectedFileIds)
             .bind(to: hoge)
             .disposed(by: bag)
     }
@@ -63,17 +62,17 @@ class FoldersAndFilesViewModel {
     }
 
     func fileSelected(fileId: File.Id) {
-        var current = selectedFileIds.value
+        var current = SharedState.shared.selectedFileIds.value
         if current.contains(fileId) {
             current.remove(fileId)
         } else {
             current.insert(fileId)
         }
-        selectedFileIds.accept(current)
+        SharedState.shared.updateSelectedFileIds(current)
         refresh.accept(())
     }
 
     func confirmButtonTapped() {
-        self.showSelectedIds.accept(self.selectedFileIds.value)
+        self.showSelectedIds.accept(SharedState.shared.selectedFileIds.value)
     }
 }
